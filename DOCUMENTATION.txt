@@ -1,0 +1,588 @@
+================================================================================
+                    GAS LEAKAGE DETECTION SYSTEM
+                         TECHNICAL DOCUMENTATION
+                              Version 1.0
+                           April 2026
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Executive Summary
+2. System Overview
+3. Hardware Components
+4. Software Architecture
+5. Sensor Specifications
+6. Alert System Design
+7. Display Interface
+8. Threshold Configuration
+9. Usage Guide
+10. Test Scenarios
+11. Cost Analysis
+12. Safety Considerations
+13. Future Enhancements
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+This document describes a comprehensive Gas Leakage Detection System designed
+for kitchen and industrial environments. The system provides real-time
+monitoring of harmful gases using MQ-2/MQ-5 gas sensors with multi-level
+alerting to prevent fire, explosion, and health hazards.
+
+Key Benefits:
+- Rapid gas leak detection (within seconds)
+- Multi-level alert system (Safe, Warning, Danger)
+- Audible and visual notifications
+- LCD display for local monitoring
+- Mobile notification capability
+- Low-cost, student-friendly implementation
+
+================================================================================
+2. SYSTEM OVERVIEW
+================================================================================
+
+2.1 Purpose
+-----------
+The system detects gas leakage from LPG cylinders, natural gas pipes, or
+industrial gas sources and alerts users before dangerous accumulation occurs.
+
+2.2 Application Environments
+----------------------------
+- Residential kitchens
+- Commercial restaurants
+- Industrial facilities
+- Laboratories
+- Any environment using combustible gases
+
+2.3 System Block Diagram
+-------------------------
+
+    +-------------------+       +-------------------+       +----------------+
+    |   MQ-2/MQ-5 Gas  |       |  Temperature &   |       |  Smoke        |
+    |   Sensor         |       |  Humidity Sensor |       |  Sensor       |
+    +--------+----------+       +--------+----------+       +-------+--------+
+             |                             |                         |
+             +-----------------------------+-------------------------+
+                                     |
+                              +-------+-------+
+                              |   Arduino/MCU |
+                              |   (Processing)|
+                              +-------+-------+
+                                     |
+        +----------------------------+----------------------------+
+        |                            |                            |
+   +----+----+                 +----+----+                 +-----+-----+
+   |Buzzer  |                 | LED Array |                |LCD Display|
+   +---------+                 +---------+                 +-----------+
+                                     |
+                            +--------+--------+
+                            | GSM Module     |
+                            | (SMS Alert)    |
+                            +----------------+
+
+================================================================================
+3. HARDWARE COMPONENTS
+================================================================================
+
+3.1 MQ-2/MQ-5 Gas Sensor
+------------------------
+Type:        Semiconductor metal oxide gas sensor
+Detection:   LPG, Propane, Methane, Hydrogen, Smoke
+Voltage:     5V DC
+Output:      Analog (0-5V) / Digital (TTL)
+Sensitivity: Adjustable via potentiometer
+Response:    <10 seconds
+Recovery:    <30 seconds
+Pinout:
+  - VCC (5V)
+  - GND
+  - DO (Digital Output)
+  - AO (Analog Output)
+
+3.2 Arduino Uno/Nano
+-------------------
+Microcontroller: ATmega328P
+Clock Speed:     16 MHz
+Flash Memory:    32 KB
+RAM:            2 KB
+Pins Used:
+  - A0: Gas sensor analog output
+  - A1: Temperature sensor
+  - A2: Smoke sensor
+  - D2: Green LED
+  - D3: Yellow LED
+  - D4: Red LED
+  - D8: Buzzer control
+
+3.3 Alert Components
+--------------------
+Buzzer (5V Active):
+  - Frequency: 2000 Hz
+  - Current: 30mA
+  - Sound level: 85dB
+
+LED Array:
+  - Green LED:  (Pin D2) - Safe status
+  - Yellow LED: (Pin D3) - Warning status
+  - Red LED:    (Pin D4) - Danger status
+
+3.4 LCD Display (16x2)
+----------------------
+Type:    HD44780 compatible
+Voltage: 5V DC
+Pins:    16 pins (8 data + 3 control + power)
+Display: 16 characters x 2 lines
+
+3.5 Optional GSM Module (SIM800L/SIM900)
+----------------------------------------
+Voltage:    3.7-4.2V (with external supply)
+Interface:  UART (9600 baud)
+Features:   SMS sending capability
+
+================================================================================
+4. SOFTWARE ARCHITECTURE
+================================================================================
+
+4.1 Module Structure
+-------------------
+GasLeakDetectionSystem/
+|
++-- config.py           # System configuration and thresholds
++-- sensors.py          # Sensor classes and calibration
++-- alerts.py           # Alert management system
++-- display.py          # Output interfaces
++-- detection_system.py # Main detection logic
++-- main.py            # Entry point
+
+4.2 Class Hierarchy
+-------------------
+
+BaseSensor (Abstract)
+    |
+    +-- GasSensor (MQ-2/MQ-5)
+    +-- TemperatureSensor (DHT11)
+    +-- SmokeSensor
+    +-- SensorArray (Composite)
+
+AlertManager
+    +-- BuzzerController
+    +-- LEDController
+
+Display Interface
+    +-- LCDDisplay
+    +-- SerialMonitor
+    +-- MobileApp
+    +-- ConsoleDisplay
+
+GasDetectionSystem (Main Controller)
+
+4.3 Data Flow
+-------------
+
+Sensor Reading -> Threshold Evaluation -> Status Determination
+                                                  |
+                                                  v
+                                         Alert Triggering
+                                                  |
+                    +---------------------------+---------------------------+
+                    |                           |                           |
+               Safe Mode                   Warning Mode              Danger Mode
+                    |                           |                           |
+                    v                           v                           v
+              Green LED ON                 Yellow LED              Red LED + Buzzer
+              Buzzer OFF                  Slow Beep               Rapid Beep + SMS
+
+================================================================================
+5. SENSOR SPECIFICATIONS
+================================================================================
+
+5.1 Gas Sensor (MQ-2/MQ-5)
+-------------------------
+The MQ-2 and MQ-5 sensors are metal oxide semiconductor sensors that detect
+various combustible gases.
+
+MQ-2 Specifications:
+- Detection Range: 300-10000 ppm (LPG)
+- Sensitivity Curve:
+  * R_s (sensor resistance) varies with gas concentration
+  * Higher concentration = lower resistance
+- Preheat Time: 24-48 hours (for accurate readings)
+- Operating Temp: -10C to 50C
+- Humidity Range: < 95% RH
+
+MQ-5 Specifications:
+- More sensitive to Natural Gas and LNG
+- Similar characteristics to MQ-2
+
+5.2 Temperature Sensor (DHT11)
+------------------------------
+Type:         Digital temperature and humidity
+Range:        0-50C (temperature), 20-90% RH (humidity)
+Accuracy:     +-2C (temperature), +-5% RH (humidity)
+Resolution:   1 (temperature), 1% (humidity)
+Sampling:     1 Hz maximum
+
+5.3 Smoke Sensor
+----------------
+Type:         Optical sensor (infrared)
+Detection:    Particulate matter > 0.8 microns
+Sensitivity:  Adjustable threshold
+Application:  Complements gas detection
+
+5.4 Calibration Process
+----------------------
+1. Power on sensor for 24-48 hours (preheat)
+2. Collect baseline readings in clean air
+3. Calculate average baseline value
+4. Store baseline for comparison
+5. Apply correction factor if needed
+
+================================================================================
+6. ALERT SYSTEM DESIGN
+================================================================================
+
+6.1 Alert Levels
+---------------
+
+SAFE Status:
+- Gas Level: < 200 ppm
+- LED: Green ON
+- Buzzer: OFF
+- SMS: None
+
+WARNING Status:
+- Gas Level: 200-500 ppm
+- LED: Yellow ON
+- Buzzer: Slow beep (1 second interval)
+- SMS: Optional notification
+
+DANGER Status:
+- Gas Level: > 500 ppm
+- LED: Red ON
+- Buzzer: Rapid beep (0.3 second interval)
+- SMS: Immediate emergency notification
+
+6.2 Alert Manager Class
+-----------------------
+class AlertManager:
+    Methods:
+    - trigger_alert(level, gas_value, temperature, smoke_value)
+    - _danger_alert()
+    - _warning_alert()
+    - _safe_status()
+    - get_alert_history(limit)
+
+6.3 Buzzer Patterns
+-------------------
+Warning Pattern:
+  |""""""   |""""""   |""""""   |
+  |    |   |    |   |    |   |
+  ----    ----    ----    ----
+  0.2s ON   0.8s OFF  (repeat)
+
+Danger Pattern:
+  |"""|"""|"""|"""|"""|"""|"""|"""|
+  |   |   |   |   |   |   |   |   |
+  ---   ---   ---   ---   ---   ---
+  0.15s ON  0.15s OFF (repeat)
+
+6.4 LED States
+--------------
+| Status  | Green | Yellow | Red |
+|---------|-------|--------|-----|
+| Safe    | ON    | OFF    | OFF |
+| Warning | OFF   | ON     | OFF |
+| Danger  | OFF   | OFF    | ON  |
+| Startup | Blink | Blink  | OFF |
+
+6.5 SMS Notification Format
+---------------------------
+EMERGENCY: Gas leak detected!
+Gas Level: [VALUE] ppm
+Location: [CONFIGURED]
+Time: [TIMESTAMP]
+Action: Evacuate immediately!
+
+================================================================================
+7. DISPLAY INTERFACE
+================================================================================
+
+7.1 LCD Display (16x2)
+----------------------
+Line 1: "GAS: [VALUE] PPM"
+Line 2: "TEMP: [VALUE]C [STATUS]"
+
+Example Display:
++----------------+
+|GAS:  869 PPM   |
+|TEMP: 25.3C DANGER|
++----------------+
+
+7.2 Console Output
+-----------------
++-----------------------------------------------------------------+
+|  SENSOR READINGS                                                |
++-----------------------------------------------------------------+
+|  Gas Level:       869 ppm     Status: [DANGER]                  |
+|  Temperature:    25.3 C                                          |
+|  Humidity:       57.8 %                                          |
+|  Smoke Level:      28 ppm                                        |
++-----------------------------------------------------------------+
+|  Thresholds: Safe<200 | Warning 200-500 | Danger >500           |
++-----------------------------------------------------------------+
+
+7.3 Serial Monitor Output
+--------------------------
+Format: G:{gas},T:{temp},H:{humidity},S:{smoke},ST:{status}
+Example: G:869,T:25.3,H:57.8,S:28,ST:DANGER
+
+7.4 Mobile App Interface
+-----------------------
+Dashboard shows:
+- Current gas level with progress bar
+- Temperature and humidity
+- System status indicator
+- Alert history list
+- Emergency contact button
+
+================================================================================
+8. THRESHOLD CONFIGURATION
+================================================================================
+
+8.1 Default Thresholds (config.py)
+----------------------------------
+
+class GasThresholds:
+    SAFE   = 200   ppm
+    WARNING = 500   ppm
+    DANGER  = 800   ppm
+    MAX     = 1023 ppm (ADC limit)
+
+class TemperatureThresholds:
+    MIN_NORMAL = 0   C
+    MAX_NORMAL = 50  C
+    WARNING    = 60  C
+    DANGER     = 75  C
+
+class SmokeThresholds:
+    SAFE   = 100   ppm
+    WARNING = 300   ppm
+    DANGER  = 600   ppm
+
+8.2 Threshold Customization
+--------------------------
+Thresholds can be modified in config.py based on:
+- Environment type (residential/industrial)
+- Local gas type (LPG vs natural gas)
+- Ventilation conditions
+- Safety regulations
+
+8.3 Response Time Requirements
+-----------------------------
+- Detection time: < 1 second
+- Alert activation: < 0.5 seconds
+- Display update: < 0.1 seconds
+- SMS delivery: < 30 seconds (network dependent)
+
+================================================================================
+9. USAGE GUIDE
+================================================================================
+
+9.1 Installation
+---------------
+1. Connect hardware components per pinout
+2. Upload Arduino sketch (if using Arduino)
+3. Install Python dependencies
+4. Run: python main.py
+
+9.2 Operation Modes
+------------------
+
+Mode 1: Interactive Mode
+-------------------------
+1. Run: python main.py
+2. Select option 6
+3. Use commands:
+   - safe    : Set safe gas level
+   - warning : Set warning gas level
+   - danger  : Set danger gas level
+   - smoke   : Add smoke detection
+   - status  : Show system status
+   - quit    : Exit program
+
+Mode 2: Demo Mode
+-----------------
+1. Run: python main.py
+2. Select demo (options 2-5):
+   - 2: Normal safe operation
+   - 3: Warning level detection
+   - 4: Danger level detection
+   - 5: Complete scenario
+
+Mode 3: Simulation Mode
+-----------------------
+1. Run: python main.py
+2. Select option 5
+3. System runs automatic scenario
+
+9.3 System Initialization
+------------------------
+1. System starts with sensor calibration
+2. LED test sequence (all blink)
+3. Buzzer test (short beep)
+4. LCD shows "System Ready"
+5. Normal monitoring begins
+
+================================================================================
+10. TEST SCENARIOS
+================================================================================
+
+10.1 Scenario 1: Normal Operation
+---------------------------------
+Duration: 15 seconds
+Gas Level: 50-60 ppm
+Expected: Green LED, no buzzer
+
+10.2 Scenario 2: Warning Detection
+----------------------------------
+Duration: 10 seconds
+Gas Level: 400 ppm
+Expected: Yellow LED, slow beep
+
+10.3 Scenario 3: Danger Detection
+--------------------------------
+Duration: 8 seconds
+Gas Level: 869 ppm
+Expected: Red LED, rapid beep, alerts
+
+10.4 Scenario 4: Complete Escalation
+----------------------------------
+Timeline:
+  0-5s:   Normal (5 ppm)
+  5-10s:  Increasing (300 ppm)
+  10-15s: Warning (400 ppm)
+  15-20s: Danger (800 ppm)
+  20-25s: Critical (900 ppm)
+  25-30s: Recovery (5 ppm)
+
+10.5 Scenario 5: False Alarm Prevention
+---------------------------------------
+Test: Gradual increase should not trigger immediate alarm
+Method: Slowly introduce gas over 60 seconds
+Expected: Progressive warnings before danger
+
+================================================================================
+11. COST ANALYSIS
+================================================================================
+
+11.1 Component Costs
+--------------------
+| Component              | Quantity | Unit Cost | Total   |
+|------------------------|----------|-----------|---------|
+| MQ-2 Gas Sensor        | 1        | $3.50     | $3.50   |
+| Arduino Uno            | 1        | $6.00     | $6.00   |
+| Buzzer (5V Active)     | 1        | $1.50     | $1.50   |
+| LED Kit (RGB)          | 1        | $1.00     | $1.00   |
+| LCD 16x2 + I2C Adapter | 1        | $4.00     | $4.00   |
+| DHT11 Sensor           | 1        | $2.00     | $2.00   |
+| Jumper Wires           | 1 pack   | $2.00     | $2.00   |
+| Breadboard             | 1        | $3.00     | $3.00   |
+| Power Supply (5V 2A)   | 1        | $3.00     | $3.00   |
+|------------------------|----------|-----------|---------|
+| TOTAL (Basic)          |          |           | $26.00  |
+
+11.2 Optional Components
+------------------------
+| Component              | Cost     |
+|------------------------|----------|
+| GSM Module (SIM800L)   | $12.00   |
+| Enclosure Box         | $5.00    |
+| Buzzer (Louder)       | $3.00    |
+|------------------------|----------|
+| TOTAL (Full)           | $46.00   |
+
+11.3 Comparison with Commercial Solutions
+-----------------------------------------
+| Feature              | DIY System | Commercial |
+|----------------------|------------|------------|
+| Cost                 | $26-46     | $80-200    |
+| Customizable         | Yes        | Limited    |
+| Educational Value   | High       | Low        |
+| SMS Alert            | Optional   | Usually    |
+| Mobile App           | Optional   | Usually    |
+
+================================================================================
+12. SAFETY CONSIDERATIONS
+================================================================================
+
+12.1 Electrical Safety
+----------------------
+- Use proper voltage ratings (5V DC)
+- Avoid reverse polarity connections
+- Include fuse or current limiting
+- Proper grounding
+
+12.2 Sensor Safety
+------------------
+- Do not expose to water
+- Avoid extreme temperatures
+- Allow proper preheat time
+- Replace sensors annually
+
+12.3 Installation Safety
+-----------------------
+- Install near gas source but not directly on it
+- Ensure ventilation access
+- Keep away from flame sources
+- Position at breathing height
+
+12.4 Maintenance Requirements
+------------------------------
+- Monthly: Visual inspection
+- Quarterly: Sensor calibration check
+- Annually: Sensor replacement
+- As needed: Battery/power check
+
+12.5 Limitations
+----------------
+- Cannot detect all gas types
+- Environmental factors affect readings
+- False positives possible
+- Not a substitute for professional systems
+
+================================================================================
+13. FUTURE ENHANCEMENTS
+================================================================================
+
+13.1 Short-term Improvements
+---------------------------
+- [ ] Add gas type identification
+- [ ] Implement data logging to SD card
+- [ ] Add automatic valve shutoff
+- [ ] Improve mobile app interface
+
+13.2 Medium-term Enhancements
+-----------------------------
+- [ ] WiFi connectivity (ESP8266/ESP32)
+- [ ] Cloud dashboard integration
+- [ ] Machine learning for false alarm reduction
+- [ ] Multi-zone monitoring
+
+13.3 Long-term Features
+-----------------------
+- [ ] IoT integration with home automation
+- [ ] Predictive maintenance alerts
+- [ ] Integration with emergency services
+- [ ] Advanced analytics and reporting
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================
+
+Document Version: 1.0
+Last Updated: April 2026
+Author: Gas Leak Detection System Project Team
+
+For questions or support, refer to the project repository or contact
+the development team.
