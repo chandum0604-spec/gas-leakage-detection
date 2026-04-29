@@ -1,0 +1,117 @@
+================================================================================
+              GAS LEAKAGE DETECTION SYSTEM - QUICK REFERENCE CARD
+================================================================================
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          SYSTEM WIRING DIAGRAM                             ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  Arduino Uno                                                                 ║
+║  +--------+                                                                    ║
+║  | 5V     |---> MQ-2 VCC                                                     ║
+║  | GND    |---> MQ-2 GND                                                     ║
+║  | A0     |---> MQ-2 A0 (Analog Out)                                         ║
+║  | D2     |---> Green LED (220 ohm resistor)                                  ║
+║  | D3     |---> Yellow LED (220 ohm resistor)                                 ║
+║  | D4     |---> Red LED (220 ohm resistor)                                    ║
+║  | D8     |---> Buzzer (+) | GND (-)                                         ║
+║  | A1     |---> DHT11 Data                                                    ║
+║  | A2     |---> Smoke Sensor A0                                              ║
+║  +--------+                                                                    ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                              THRESHOLD LEVELS                                ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  +------------------+------------------+------------------+                    ║
+║  │      SAFE       │     WARNING      │      DANGER      │                    ║
+║  +------------------+------------------+------------------+                    ║
+║  │ Gas: < 200 ppm  │ Gas: 200-500 ppm│ Gas: > 500 ppm   │                    ║
+║  │ LED: GREEN      │ LED: YELLOW      │ LED: RED         │                    ║
+║  │ Buzzer: OFF     │ Buzzer: SLOW     │ Buzzer: FAST     │                    ║
+║  │ SMS: None       │ SMS: Optional    │ SMS: EMERGENCY   │                    ║
+║  +------------------+------------------+------------------+                    ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           QUICK COMMANDS (Interactive Mode)                  ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  Command      Action                                                        ║
+║  -------      ------                                                        ║
+║  safe         Set gas level to normal (~50 ppm)                              ║
+║  warning      Set gas level to warning (~400 ppm)                            ║
+║  danger       Set gas level to danger (~850 ppm)                            ║
+║  smoke        Add smoke detection                                           ║
+║  status       Display system status                                         ║
+║  quit         Exit program                                                  ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           LED STATUS INDICATORS                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  System State        Green LED    Yellow LED    Red LED                       ║
+║  ------------        ---------    ----------    -------                       ║
+║  Power On            Blink        Blink         OFF                          ║
+║  Calibration         OFF          Blink         OFF                          ║
+║  Normal/Safe         ON           OFF          OFF                          ║
+║  Warning             OFF          ON           OFF                          ║
+║  Danger              OFF          OFF          ON                            ║
+║  Error               OFF          OFF          Blink                          ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                              COMPONENT COSTS                                 ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  Item                          Cost                                          ║
+║  ----                          ----                                          ║
+║  MQ-2 Gas Sensor               $3.50                                         ║
+║  Arduino Uno                   $6.00                                         ║
+║  Buzzer (5V)                   $1.50                                         ║
+║  LED Kit                       $1.00                                         ║
+║  LCD 16x2 + I2C               $4.00                                         ║
+║  DHT11 Sensor                  $2.00                                         ║
+║  Misc (wires, breadboard)      $8.00                                         ║
+║  ----------                                                            ----- ║
+║  TOTAL                         ~$26.00                                       ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           TROUBLESHOOTING GUIDE                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  Problem                      Solution                                        ║
+║  -------                      -------                                         ║
+║  Sensor always shows 0        Check wiring, ensure 5V supply                 ║
+║  False alarms                 Recalibrate sensor, check thresholds           ║
+║  LCD shows nothing            Check I2C address, contrast adjustment        ║
+║  Buzzer not working           Check pin connection, try different pin        ║
+║  Serial no output             Verify baud rate (9600), check COM port        ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                              EMERGENCY PROCEDURE                             ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  1. HEAR THE ALARM - Do not ignore it!                                      ║
+║  2. DO NOT use electrical switches or appliances                             ║
+║  3. Open windows and doors for ventilation                                   ║
+║  4. Turn off gas source if safe to do so                                    ║
+║  5. Evacuate the premises                                                   ║
+║  6. Call emergency services from outside                                    ║
+║  7. Do not re-enter until cleared by professionals                          ║
+║                                                                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+================================================================================
+                    For more information, see DOCUMENTATION.txt
+================================================================================

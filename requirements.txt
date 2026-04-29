@@ -1,0 +1,10 @@
+# Gas Leakage Detection System - Dependencies
+python >= 3.8
+
+# Core dependencies (none required for simulation)
+# For actual hardware:
+# pyserial >= 3.5
+
+# Optional for future features:
+# flask >= 2.0  (Web dashboard)
+# smtplib (built-in, for email alerts)
